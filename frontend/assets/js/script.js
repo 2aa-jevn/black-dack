@@ -1,6 +1,13 @@
 // BLACK DACK - Main JavaScript
 
-// Sample products data (will be replaced with API calls)
+// Initialize app
+const APP = {
+    API_URL: 'http://localhost:5000/api',
+    cart: [],
+    products: {}
+};
+
+// Sample products data
 const productsData = {
     'black-denim': [
         {
@@ -9,7 +16,7 @@ const productsData = {
             category: 'black-denim',
             price: 15000,
             image: 'assets/images/placeholder-denim.jpg',
-            description: 'Denim noir premium avec détails dorés. Numéro d\'édition limité.',
+            description: 'Denim noir premium avec détails dorés. Édition limitée numérotée.',
             sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
             availability: 'En stock',
             edition: '001/100'
@@ -20,7 +27,7 @@ const productsData = {
             category: 'black-denim',
             price: 15000,
             image: 'assets/images/placeholder-denim.jpg',
-            description: 'Denim noir premium avec détails dorés. Numéro d\'édition limité.',
+            description: 'Denim noir premium avec broderies artisanales.',
             sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
             availability: 'En stock',
             edition: '002/100'
@@ -44,7 +51,7 @@ const productsData = {
             category: 'black-woman',
             price: 28000,
             image: 'assets/images/placeholder-woman.jpg',
-            description: 'Design moderne avec finitions artisanales.',
+            description: 'Design moderne avec finitions artisanales premium.',
             sizes: ['XS', 'S', 'M', 'L', 'XL'],
             availability: 'En stock',
             edition: '002/50'
@@ -86,7 +93,7 @@ function createProductCard(product) {
             <div class="product-price">${formatPrice(product.price)}</div>
             <div class="product-description">${product.description}</div>
             <div class="product-availability">${product.availability}</div>
-            <button class="btn btn-primary" onclick="viewProduct(${product.id})">Voir le détail</button>
+            <button class="btn btn-primary btn-small" onclick="viewProduct(${product.id})">Voir le détail</button>
         </div>
     `;
     return card;
@@ -94,7 +101,6 @@ function createProductCard(product) {
 
 // View product detail
 function viewProduct(productId) {
-    // Find product in all categories
     let product = null;
     for (const category in productsData) {
         product = productsData[category].find(p => p.id === productId);
@@ -124,7 +130,7 @@ function loadProductDetail() {
                 <h1>${product.name}</h1>
                 <div class="product-price">${formatPrice(product.price)}</div>
                 <div class="product-availability">${product.availability}</div>
-                ${product.edition ? `<div style="color: #666; margin: 0.5rem 0;">Edition: ${product.edition}</div>` : ''}
+                ${product.edition ? `<div class="product-edition">Édition: ${product.edition}</div>` : ''}
                 <div class="product-description" style="margin: 1.5rem 0; font-size: 1rem;">${product.description}</div>
                 
                 <div style="margin: 1.5rem 0;">
@@ -140,8 +146,8 @@ function loadProductDetail() {
                     <input type="number" id="quantity" value="1" min="1" style="padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; width: 100%;">
                 </div>
 
-                <button class="btn btn-primary" style="width: 100%; padding: 15px;" onclick="addToCart(${product.id})">Ajouter au panier</button>
-                <button class="btn btn-secondary" style="width: 100%; padding: 15px; margin-top: 1rem;" onclick="window.history.back()">Retour</button>
+                <button class="btn btn-primary btn-block" style="padding: 15px; margin-bottom: 1rem;" onclick="addToCart(${product.id})">Ajouter au panier</button>
+                <button class="btn btn-secondary btn-block" style="padding: 15px;" onclick="window.location.href='collection.html'">Retour</button>
             </div>
         `;
     }
@@ -149,11 +155,57 @@ function loadProductDetail() {
 
 // Add to cart
 function addToCart(productId) {
-    alert('Fonctionnalité de panier à implémenter. Produit: ' + productId);
+    const size = document.getElementById('size').value;
+    const quantity = parseInt(document.getElementById('quantity').value);
+    
+    if (!size) {
+        alert('Veuillez sélectionner une taille');
+        return;
+    }
+
+    let product = null;
+    for (const category in productsData) {
+        product = productsData[category].find(p => p.id === productId);
+        if (product) break;
+    }
+
+    if (product) {
+        const cartItem = {
+            ...product,
+            size: size,
+            quantity: quantity,
+            cartId: Date.now()
+        };
+        
+        APP.cart.push(cartItem);
+        localStorage.setItem('cart', JSON.stringify(APP.cart));
+        
+        alert(`${product.name} ajouté au panier!`);
+        updateCartCount();
+    }
+}
+
+// Load cart
+function loadCart() {
+    const cartData = localStorage.getItem('cart');
+    if (cartData) {
+        APP.cart = JSON.parse(cartData);
+    }
+    updateCartCount();
+}
+
+// Update cart count
+function updateCartCount() {
+    const cartCount = document.querySelector('.cart-count');
+    if (cartCount) {
+        cartCount.textContent = APP.cart.length;
+    }
 }
 
 // Contact form submission
 document.addEventListener('DOMContentLoaded', function() {
+    loadCart();
+    
     const contactForm = document.getElementById('contact-form');
     if (contactForm) {
         contactForm.addEventListener('submit', function(e) {
@@ -163,12 +215,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Load collections if on collection page
     if (window.location.pathname.includes('collection.html')) {
         loadCollections();
     }
 
-    // Load product detail if on product page
     if (window.location.pathname.includes('produit.html')) {
         loadProductDetail();
     }

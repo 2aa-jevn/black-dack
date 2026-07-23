@@ -1,4 +1,3 @@
-// BLACK DACK - Backend Server
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -48,6 +47,7 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
     console.log(`🖤 BLACK DACK Server running on port ${PORT}`);
     console.log(`Créé pour être unique.`);
+    console.log(`API Documentation: http://localhost:${PORT}/api/health`);
 });
 
 module.exports = app;

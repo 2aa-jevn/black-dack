@@ -1,48 +1,78 @@
-// Products routes
 const express = require('express');
 const router = express.Router();
+const db = require('../config/database');
+const auth = require('../middleware/auth');
 
-// @route   GET /api/products
-// @desc    Get all products
-// @access  Public
+// Get all products
 router.get('/', (req, res) => {
-    res.json({
-        products: []
+    db.all('SELECT * FROM products', (err, products) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ products });
     });
 });
 
-// @route   GET /api/products/:id
-// @desc    Get product by ID
-// @access  Public
+// Get product by ID
 router.get('/:id', (req, res) => {
-    res.json({
-        product: null
+    const { id } = req.params;
+    db.get('SELECT * FROM products WHERE id = ?', [id], (err, product) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ product });
     });
 });
 
-// @route   POST /api/products
-// @desc    Create new product
-// @access  Private (Admin)
-router.post('/', (req, res) => {
+// Create product (admin only)
+router.post('/', auth, (req, res) => {
     const { name, price, category, image, description } = req.body;
-    res.json({
-        message: 'Product created',
-        product: { name, price, category, image, description }
+    
+    if (!name || !price || !category) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    db.run(
+        'INSERT INTO products (name, price, category, image, description) VALUES (?, ?, ?, ?, ?)',
+        [name, price, category, image, description],
+        function(err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ 
+                message: 'Product created',
+                id: this.lastID
+            });
+        }
+    );
+});
+
+// Update product (admin only)
+router.put('/:id', auth, (req, res) => {
+    const { id } = req.params;
+    const { name, price, category, image, description, availability } = req.body;
+    
+    db.run(
+        'UPDATE products SET name = ?, price = ?, category = ?, image = ?, description = ?, availability = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [name, price, category, image, description, availability, id],
+        function(err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ message: 'Product updated' });
+        }
+    );
+});
+
+// Delete product (admin only)
+router.delete('/:id', auth, (req, res) => {
+    const { id } = req.params;
+    db.run('DELETE FROM products WHERE id = ?', [id], function(err) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'Product deleted' });
     });
-});
-
-// @route   PUT /api/products/:id
-// @desc    Update product
-// @access  Private (Admin)
-router.put('/:id', (req, res) => {
-    res.json({ message: 'Product updated' });
-});
-
-// @route   DELETE /api/products/:id
-// @desc    Delete product
-// @access  Private (Admin)
-router.delete('/:id', (req, res) => {
-    res.json({ message: 'Product deleted' });
 });
 
 module.exports = router;
