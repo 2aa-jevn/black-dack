@@ -1,0 +1,30 @@
+{
+  "name": "black-dack-backend",
+  "version": "1.0.0",
+  "description": "Backend API pour BLACK DACK - Maison de mode de Bamako",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "black-dack",
+    "fashion",
+    "api",
+    "express"
+  ],
+  "author": "BLACK DACK TEAM",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.0",
+    "sqlite3": "^5.1.6",
+    "dotenv": "^16.0.3",
+    "cors": "^2.8.5",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
