@@ -35,17 +35,24 @@ CREATE TABLE IF NOT EXISTS promotions (
 CREATE TABLE IF NOT EXISTS orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     client_name VARCHAR(255) NOT NULL,
+    client_email VARCHAR(255),
     phone VARCHAR(20) NOT NULL,
     product_id INTEGER,
     quantity INTEGER,
     amount DECIMAL(10, 2) NOT NULL,
+    delivery_region VARCHAR(100),
+    delivery_cost DECIMAL(10, 2) DEFAULT 0,
+    total_amount DECIMAL(10, 2) NOT NULL,
+    payment_method VARCHAR(50),
+    payment_status VARCHAR(50) DEFAULT 'pending',
     status VARCHAR(50) DEFAULT 'pending',
+    notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
--- Sizes table (for products)
+-- Sizes table
 CREATE TABLE IF NOT EXISTS sizes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     product_id INTEGER NOT NULL,
@@ -53,3 +60,9 @@ CREATE TABLE IF NOT EXISTS sizes (
     stock INTEGER DEFAULT 0,
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_client ON orders(client_name);
+CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
+CREATE INDEX IF NOT EXISTS idx_promotions_code ON promotions(code);
